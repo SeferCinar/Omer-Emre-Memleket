@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ömer İçin Çark — Memleket Seçici</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --card:#111827ee; /* gray-900 */
+      --text:#e5e7eb; /* gray-200 */
+      --accent:#38bdf8; /* sky-400 */
+      --muted:#94a3b8; /* slate-400 */
+      --success:#4ade80; /* green-400 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;background:radial-gradient(1200px 800px at 50% -20%, #1f2937, var(--bg));color:var(--text);display:flex;align-items:center;justify-content:center}
+    .app{width:min(100%,1100px);padding:24px}
+    .card{background:var(--card);backdrop-filter: blur(6px);border:1px solid #1f2937;border-radius:20px;box-shadow:0 10px 30px #0006;padding:22px}
+    .header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+    .badge{font-size:12px;padding:4px 8px;border:1px solid #374151;border-radius:999px;color:#9ca3af}
+    h1{font-size: clamp(20px, 4vw, 28px);margin:0}
+    .grid{display:grid;grid-template-columns: 1fr; gap:22px}
+    @media(min-width:980px){.grid{grid-template-columns: 520px 1fr}}
+
+    /* Wheel */
+    .wheel-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+    .wheel{
+      width:min(80vw,500px);height:min(80vw,500px);
+      border-radius:50%;
+      border:10px solid #0b1220;
+      background:#020617;
+      box-shadow: inset 0 0 35px #000a, 0 20px 60px #000a;
+      transition: transform 4.5s cubic-bezier(0.12,0.13,0,1.0);
+      will-change: transform;
+    }
+    .pin{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:22px solid var(--accent);filter:drop-shadow(0 2px 6px #000a)}
+
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    button{
+      appearance:none;border:none;cursor:pointer;
+      background:linear-gradient(180deg, #0ea5e9, #0369a1);
+      color:white;font-weight:700;letter-spacing:.3px;
+      padding:12px 18px;border-radius:14px;box-shadow:0 8px 20px #0ea5e944, inset 0 0 0 1px #7dd3fc50;
+      transition: transform .05s ease, opacity .3s ease, box-shadow .3s ease;
+    }
+    button:active{transform: translateY(1px)}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .ghost{background:#0b1220;color:#cbd5e1;border:1px solid #1f2937;box-shadow:none}
+
+    .result{font-size: clamp(18px, 3.4vw, 24px); font-weight:800;margin-top:10px}
+    .result small{display:block;color:var(--muted);font-weight:500;margin-top:6px}
+    .list{font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; width:100%; height:180px; border-radius:12px; padding:10px; border:1px solid #334155; background:#0b1220; color:#e2e8f0;}
+    details{border:1px dashed #334155;border-radius:14px;padding:12px}
+    details>summary{cursor:pointer;color:#cbd5e1;font-weight:700}
+    .hint{color:#94a3b8;font-size:12px}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#0b1220;border:1px solid #1f2937;color:#cbd5e1;font-size:12px}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .credit{font-size:12px;color:#94a3b8;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="header">
+        <span class="badge">Basit Web Uygulaması</span>
+        <h1>Ömer İçin Çark — Memleket Seçici</h1>
+      </div>
+
+      <div class="grid">
+        <!-- LEFT: Wheel -->
+        <div class="wheel-wrap">
+          <div class="pin" aria-hidden="true"></div>
+          <svg id="wheel" class="wheel" viewBox="0 0 500 500" role="img" aria-label="Rastgele memleket çarkı"></svg>
+        </div>
+
+        <!-- RIGHT: Controls and result -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="controls">
+            <button id="spinBtn">Çevir 🎯</button>
+            <button id="shuffleBtn" class="ghost" title="Sıralamayı karıştır">Karıştır 🔀</button>
+            <span class="pill" id="countPill">Toplam: 0 şehir</span>
+          </div>
+
+          <div>
+            <div class="result" id="result">Hazır! Çarkı çevir ve Ömer'in memleketini seçelim 😄</div>
+            <small class="hint">İpucu: Çark durunca, üstteki ok'un gösterdiği dilim kazanır.</small>
+          </div>
+
+          <details>
+            <summary>Listeyi özelleştir (isteğe bağlı)</summary>
+            <p class="hint">Virgülle ayır: <em>İstanbul, Ankara, İzmir, ...</em></p>
+            <textarea id="listInput" class="list" spellcheck="false"></textarea>
+            <div class="row">
+              <button id="applyBtn" class="ghost">Listeyi Uygula</button>
+              <button id="resetBtn" class="ghost">Varsayılan 81 ile Doldur</button>
+            </div>
+          </details>
+
+          <div class="credit">Yapım: Sen & ChatGPT — Tek dosya, barındır: sadece bu HTML'yi aç yeter.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Veri: Türkiye İllerinin Varsayılan Listesi ---
+    const DEFAULT_CITIES = [
+      "Adana","Adıyaman","Afyonkarahisar","Ağrı","Amasya","Ankara","Antalya","Artvin","Aydın","Balıkesir","Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum","Denizli","Diyarbakır","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun","Gümüşhane","Hakkâri","Hatay","Isparta","Mersin","İstanbul","İzmir","Kars","Kastamonu","Kayseri","Kırklareli","Kırşehir","Kocaeli","Konya","Kütahya","Malatya","Manisa","Kahramanmaraş","Mardin","Muğla","Muş","Nevşehir","Niğde","Ordu","Rize","Sakarya","Samsun","Siirt","Sinop","Sivas","Tekirdağ","Tokat","Trabzon","Tunceli","Şanlıurfa","Uşak","Van","Yozgat","Zonguldak","Aksaray","Bayburt","Karaman","Kırıkkale","Batman","Şırnak","Bartın","Ardahan","Iğdır","Yalova","Karabük","Kilis","Osmaniye","Düzce"
+    ];
+
+    // --- Dom Referansları ---
+    const wheel = document.getElementById('wheel');
+    const spinBtn = document.getElementById('spinBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const resultEl = document.getElementById('result');
+    const listInput = document.getElementById('listInput');
+    const applyBtn = document.getElementById('applyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const countPill = document.getElementById('countPill');
+
+    // --- Durum ---
+    let items = [...DEFAULT_CITIES];
+    let spinning = false;
+    let rotation = 0; // derece
+
+    // Yardımcı: Rastgele tam sayı
+    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    // HSL tabanlı renk üretici (uyumlu gökkuşağı)
+    const colorFor = (i, n) => `hsl(${Math.round((360 * i) / n)}, 65%, 50%)`;
+
+    // Polar -> Kartesyen
+    function polar(cx, cy, r, angleDeg){
+      const rad = (angleDeg * Math.PI)/180;
+      return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+    }
+
+    // Çarkı çiz
+    function drawWheel(){
+      wheel.innerHTML = '';
+      const n = items.length;
+      countPill.textContent = `Toplam: ${n} şehir`;
+      if(n === 0){
+        resultEl.innerHTML = 'Liste boş. Sağdaki alandan şehir ekle.';
+        return;
+      }
+
+      const cx = 250, cy = 250, rOuter = 240, rInner = 70;
+      const step = 360 / n;
+      const startBase = -90; // üstten başla (pin ile hizalı)
+
+      for(let i=0;i<n;i++){
+        const start = startBase + i * step;
+        const end = start + step;
+
+        // Dilim yolu
+        const [x1,y1] = polar(cx, cy, rOuter, start);
+        const [x2,y2] = polar(cx, cy, rOuter, end);
+        const largeArc = step > 180 ? 1 : 0;
+        const pathData = [
+          `M ${cx} ${cy}`,
+          `L ${x1} ${y1}`,
+          `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x2} ${y2}`,
+          'Z'
+        ].join(' ');
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d', pathData);
+        path.setAttribute('fill', colorFor(i, n));
+        path.setAttribute('stroke', '#0b1220');
+        path.setAttribute('stroke-width', '1');
+        wheel.appendChild(path);
+
+        // Etiket (metin)
+        const mid = start + step/2;
+        const [tx,ty] = polar(cx, cy, (rOuter + rInner)/2, mid);
+        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.textContent = items[i];
+        text.setAttribute('x', tx);
+        text.setAttribute('y', ty);
+        text.setAttribute('fill', '#f8fafc');
+        text.setAttribute('font-size', Math.max(10, 14 - Math.max(0, n-12)*0.25));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('transform', `rotate(${mid+90}, ${tx}, ${ty})`);
+        text.setAttribute('pointer-events','none');
+        wheel.appendChild(text);
+      }
+
+      // İç daire (göbek)
+      const hub = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      hub.setAttribute('cx', 250);
+      hub.setAttribute('cy', 250);
+      hub.setAttribute('r', 58);
+      hub.setAttribute('fill', '#020617');
+      hub.setAttribute('stroke', '#0b1220');
+      hub.setAttribute('stroke-width', '8');
+      wheel.appendChild(hub);
+
+      const hubDot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      hubDot.setAttribute('cx', 250);
+      hubDot.setAttribute('cy', 250);
+      hubDot.setAttribute('r', 6);
+      hubDot.setAttribute('fill', '#38bdf8');
+      wheel.appendChild(hubDot);
+    }
+
+    // Sonucu hesapla: üstteki pin'e göre hangi dilim?
+    function computeWinner(){
+      const n = items.length;
+      const step = 360 / n;
+      // Normalizasyon: 0-360
+      const norm = ((rotation % 360) + 360) % 360;
+      // Görünen açı, tekerlek döndükçe yazılarla birlikte dönüyor; pin sabit. 
+      // Pin üstte (0° ~ -90 başlangıcı). -90 ile hizalamak için:
+      const fromTop = (360 - norm + 0) % 360; // 0°: üst
+      let idx = Math.floor(fromTop / step);
+      // Güvenlik
+      if(idx < 0) idx = 0;
+      if(idx >= n) idx = n-1;
+      return idx;
+    }
+
+    function announceWinner(idx){
+      const name = items[idx];
+      resultEl.innerHTML = `🎉 Ömer'in memleketi: <span style="color:var(--success)">${name}</span>` +
+        `<small>İstersen tekrar çevirip yeni bir memleket seçebilirsin.</small>`;
+    }
+
+    // Çevirme işlemi
+    function spin(){
+      if(spinning || items.length === 0) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      const extra = randInt(2000, 4000); // toplam dönüş derecesi artışı
+      rotation += extra + randInt(0, 359);
+      wheel.style.transform = `rotate(${rotation}deg)`;
+    }
+
+    // Olaylar
+    spinBtn.addEventListener('click', spin);
+    shuffleBtn.addEventListener('click', () => {
+      // Fisher-Yates
+      for(let i = items.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      drawWheel();
+    });
+
+    wheel.addEventListener('transitionend', () => {
+      const idx = computeWinner();
+      announceWinner(idx);
+      spinning = false;
+      spinBtn.disabled = false;
+    });
+
+    applyBtn.addEventListener('click', () => {
+      const raw = listInput.value
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      items = raw.length ? raw : [];
+      rotation = 0;
+      wheel.style.transform = `rotate(0deg)`;
+      drawWheel();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      items = [...DEFAULT_CITIES];
+      listInput.value = DEFAULT_CITIES.join(', ');
+      rotation = 0;
+      wheel.style.transform = `rotate(0deg)`;
+      drawWheel();
+    });
+
+    // Başlat
+    listInput.value = DEFAULT_CITIES.join(', ');
+    drawWheel();
+  </script>
+</body>
+</html>
